@@ -3,7 +3,7 @@
 -- Engine work goes through the vendored pd3lib (classes loader, spawn, ai, weapons, mission).
 -- Keys:
 --   F5            clear all spawned subjects
---   F6 / F7       previous / next enemy (roster of 15)
+--   F7 / Shift+F7 next / previous enemy (roster of 15)
 --   F8            spawn selected enemy (replaces the previous F8 subject)
 --   Shift+F8      spawn the full-roster arc (legacy mode)
 --   F9 / Shift+F9 next / previous distance breakpoint
@@ -357,8 +357,8 @@ local function bind(key, mods, fn)
 end
 
 local okF5 = bind(Key.F5, nil, function() ExecuteInGameThread(destroyAll) end)
-local okF6 = bind(Key.F6, nil, function() ExecuteInGameThread(function() cycleEnemy(-1) end) end)
 local okF7 = bind(Key.F7, nil, function() ExecuteInGameThread(function() cycleEnemy(1) end) end)
+local okShiftF7 = bind(Key.F7, { ModifierKey.SHIFT }, function() ExecuteInGameThread(function() cycleEnemy(-1) end) end)
 local okF8 = bind(Key.F8, nil, function() ExecuteInGameThread(spawnSelected) end)
 local okShiftF8 = bind(Key.F8, { ModifierKey.SHIFT }, function() ExecuteInGameThread(spawnRosterArc) end)
 local okF9 = bind(Key.F9, nil, function() ExecuteInGameThread(function() cycleDistance(1) end) end)
@@ -371,9 +371,9 @@ local okShiftF10 = bind(Key.F10, { ModifierKey.SHIFT }, function() ExecuteInGame
 
 LoopAsync(1000, function() ExecuteInGameThread(tick) end)
 
-log("loaded v0.5.2 (pd3lib v%d) - F5 clear=%s F6/F7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s (IsValid global=%s)",
+log("loaded v0.5.3 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s (IsValid global=%s)",
     pd3.Version,
-    tostring(okF5), tostring(okF6), tostring(okF7), tostring(okF8), tostring(okShiftF8),
+    tostring(okF5), tostring(okF7), tostring(okShiftF7), tostring(okF8), tostring(okShiftF8),
     tostring(okF9), tostring(okShiftF9), tostring(okCtrlF9), tostring(okCtrlShiftF9),
     tostring(okF10), tostring(okShiftF10),
     config.distanceMode, tostring(config.freeze), tostring(type(IsValid) == "function"))

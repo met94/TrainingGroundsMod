@@ -31,7 +31,7 @@ list in the config file.
 | Key | Action |
 | --- | --- |
 | `F5` | Clear all spawned subjects |
-| `F6` / `F7` | Previous / next enemy type |
+| `F7` / `Shift+F7` | Next / previous enemy type |
 | `F8` | Spawn the selected enemy at the selected distance (replaces the previous one) |
 | `Shift+F8` | Spawn the full roster in an arc |
 | `F9` / `Shift+F9` | Next / previous distance |
@@ -66,7 +66,7 @@ return {
 
 ### Install
 
-1. Download `TrainingSpawner-0.5.2.zip`.
+1. Download `TrainingSpawner-0.5.3.zip`.
 2. Open the zip.
 3. Drag the `TrainingSpawner` folder into:
 
@@ -99,6 +99,8 @@ libraries are needed — the pd3lib helper is bundled inside the download.
 
 ### Changelog
 
+- 0.5.3 — enemy cycler consolidated to `F7` (next) and `Shift+F7` (previous), matching the
+  next/Shift pattern already used for distance and difficulty; `F6` is no longer bound.
 - 0.5.2 — engine layer moved to the bundled pd3lib (spawning, AI freeze, live weapon breakpoints,
   class loading); behavior unchanged.
 - 0.5.1 — difficulty cycling with Normal/Hard/Very Hard/Overkill keys.

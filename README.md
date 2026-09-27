@@ -44,7 +44,7 @@ The mod enables itself (`enabled.txt`). If it does not load, open `...\Mods\mods
 | Key | Action |
 | --- | --- |
 | `F5` | Clear all spawned subjects |
-| `F6` / `F7` | Previous / next enemy type |
+| `F7` / `Shift+F7` | Next / previous enemy type |
 | `F8` | Spawn the selected enemy at the selected distance (replaces the previous one, faces you) |
 | `Shift+F8` | Spawn the full roster in an arc (legacy mode) |
 | `F9` / `Shift+F9` | Next / previous distance |
