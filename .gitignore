@@ -1,0 +1,10 @@
+*.log
+dist/
+work/
+assets/
+tools/UAssetEdit/bin/
+tools/UAssetEdit/obj/
+
+# Generated vendored pd3lib (deploy.ps1 / release.ps1 build it from shared/pd3lib)
+lua/TrainingSpawner/scripts/pd3lib/
+lua/TrainingSpawner/scripts/pd3lib.lua

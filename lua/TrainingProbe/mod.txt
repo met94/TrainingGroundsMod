@@ -1,0 +1,8 @@
+{
+    "name": "TrainingProbe",
+    "description": "Read-only recon probe for the training-area mod: assault manager, enemy pawns, mission state, difficulty (F6)",
+    "version": "0.1.0",
+    "author": "TrainingGroundsMod",
+    "tags": ["probe", "training"],
+    "entry_point": "scripts/main.lua"
+}
