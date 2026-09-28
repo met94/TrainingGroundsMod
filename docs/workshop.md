@@ -97,6 +97,25 @@ libraries are needed — the pd3lib helper is bundled inside the download.
 - The mod is client-side and local-only; it does not touch other players or game progression.
 - Sources and issue tracker: <https://github.com/met94/TrainingGroundsMod>
 
+### Credits
+
+- [PD3 UE4SS + Allow Pak Mods](https://modworkshop.net/mod/47771) — the UE4SS build PAYDAY 3 mods
+  run on.
+- [`pd3lib`](https://github.com/met94/pd3lib) — helper library bundled in this download.
+
+### Thanks
+
+- Spawn-override research that informed this mod: PAINDAY – MoreSpawns (Gordon Greedman),
+  Specials Only (Rockbear), Proving Grounds (Lawsfercapcake).
+- The PAYDAY 3 weapon bench ([P9317](https://github.com/P9317/payday-weapon-bench), upstream
+  [puppy-girl](https://github.com/puppy-girl/payday-weapon-bench)) — the range-row presentation
+  the distance list mirrors.
+
+### Disclaimer
+
+Unofficial mod; not affiliated with Starbreeze. PAYDAY 3 and its trademarks belong to
+Starbreeze Entertainment.
+
 ### Changelog
 
 - 0.5.3 — enemy cycler consolidated to `F7` (next) and `Shift+F7` (previous), matching the

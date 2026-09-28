@@ -105,8 +105,24 @@ covered by pd3lib's own tests).
 
 ## Credits
 
+- [PD3 UE4SS + Allow Pak Mods](https://modworkshop.net/mod/47771) — the UE4SS build PAYDAY 3 mods
+  run on.
 - [`pd3lib`](https://github.com/met94/pd3lib) — shared UE4SS helper library (bundled).
-- Built for the PAYDAY 3 modding community; uses the ModWorkshop / Moolah tooling ecosystem.
+
+## Thanks
+
+- Spawn-override research that informed this mod: PAINDAY – MoreSpawns (Gordon Greedman),
+  Specials Only (Rockbear), Proving Grounds (Lawsfercapcake).
+- The PAYDAY 3 weapon bench ([P9317](https://github.com/P9317/payday-weapon-bench), upstream
+  [puppy-girl](https://github.com/puppy-girl/payday-weapon-bench)) — the range-row presentation
+  the distance list mirrors.
+- Development tooling: FModel, [retoc](https://github.com/trumank/retoc),
+  UAssetAPI/UAssetGUI, and the [Moolah modding docs](https://moolah.dev/docs).
+
+## Disclaimer
+
+Unofficial mod; not affiliated with Starbreeze. PAYDAY 3 and its trademarks belong to
+Starbreeze Entertainment.
 
 ## License
 
