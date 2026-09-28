@@ -1,7 +1,7 @@
 {
     "name": "TrainingSpawner",
     "description": "Shooting Range test rig: spawn any enemy type, frozen, facing you, at your weapon's real damage-falloff distances. Enemy and distance cyclers, difficulty switching, configurable breakpoint list.",
-    "version": "0.5.5",
+    "version": "0.5.6",
     "author": "met94",
     "tags": ["training", "spawner", "ai", "weapons"],
     "entry_point": "scripts/main.lua"

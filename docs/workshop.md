@@ -66,7 +66,7 @@ return {
 
 ### Install
 
-1. Download `TrainingSpawner-0.5.5.zip`.
+1. Download `TrainingSpawner-0.5.6.zip`.
 2. Open the zip.
 3. Drag the `TrainingSpawner` folder into:
 
@@ -118,6 +118,9 @@ Starbreeze Entertainment.
 
 ### Changelog
 
+- 0.5.6 — fixed the mod going dead after leaving a level: stale class and controller caches are
+  dropped on every level change (and self-heal if the engine event is missed), so spawning,
+  distance readout and chat keep working after returning to the menu or starting another heist.
 - 0.5.5 — enemy, distance and difficulty changes are now announced in the in-game chat
   (colour-coded, one line per change; disable with `chatNotice = false` in the config).
 - 0.5.4 — fixed spawned subjects being dropped from tracking before the freeze pass; subjects now

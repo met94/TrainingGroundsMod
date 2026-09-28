@@ -177,6 +177,32 @@ Running log. Newest entries at the bottom of each section.
   `[TrainingSpawner] …` lines (`<Object>`/`<Blue>`/`<Hud_01>` accents), config `chatNotice`
   (default true). Verified in game (all lines render, readable, no spam on F8/F5).
 
+## v0.5.6 level-transition fixes (2026-09-28)
+
+- Symptom: after leaving the range and starting another level (or restarting it), cycling still
+  logged but queued spawns silently vanished (`pending=0` at the next status, no `spawned`/`spawn
+  FAIL`) and chat notices stopped. Root causes from `UE4SS.log` (12:31-12:33 and 12:53-12:55):
+  - `pd3.classes.Loader` handed out class UObjects resolved in the previous level; once those
+    packages unloaded they failed `Safe.IsValid`, and `spawnOne` dropped the item with no log.
+    `Loader:Get` now invalidates stale states so callers re-enqueue, and `Loader:Reset()` clears
+    resolved/queued/gave-up paths for a level change.
+  - `pd3.world` cached the first valid PlayerController; right after level init that could be a
+    pawnless transition/menu controller (nil `Pawn`/`PlayerState`) and the cache only cleared
+    when it died - F8 logged `no player pawn` and weapon reads fell back to the config list while
+    the player was already walking (First World Bank/ONE, 12:53:38-12:54:12). `GetPlayerController`
+    now prefers a local controller with a live pawn, then any local, then a pawned one, and
+    re-resolves a pawnless cache.
+  - The mod had no lifecycle handling: `pd3.lifecycle` OnLevelInit/OnLevelRestart/
+    OnReturnToMainMenu now run a pure-Lua reset (class loader, pending/spawn context, AI/World/
+    Chat caches, chat-warning latch, distance refresh flag). Hook context stays engine-free.
+  - Failure paths made visible: drop logs for gave-up/invalid classes, `(controllers=N)` on
+    `no player pawn`, per-distinct-reason chat warnings, `loads=` in status lines.
+- Verified in game (hot reload in range -> return to menu -> First World Bank/ONE): spawn,
+  freeze, chat and live distance readout all work after the transition; second range entry also
+  confirmed by the user.
+- pd3lib v2.2.2 (world/classes/chat `Reset`, Loader stale invalidation, controller preference);
+  TrainingSpawner 0.5.6.
+
 ## Probe (Phase 0c)
 
 - `TrainingProbe` mod deployed (F6 dump: assault managers, Settings, enemy pawns, mission state,

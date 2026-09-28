@@ -1,4 +1,4 @@
--- TrainingSpawner v0.5.2: test-rig spawner for the Shooting Range (NewShootingRange).
+-- TrainingSpawner v0.5.6: test-rig spawner for the Shooting Range (NewShootingRange).
 -- No auto-spawn. F8 spawns the selected enemy at the selected distance, facing you.
 -- Engine work goes through the vendored pd3lib (classes loader, spawn, ai, weapons, mission).
 -- Keys:
@@ -34,6 +34,7 @@ local Weapons = pd3.weapons
 local Mission = pd3.mission
 local World = pd3.world
 local Chat = pd3.chat
+local Lifecycle = pd3.lifecycle
 
 local LOADS_PER_TICK = 2
 local MAX_LOAD_ATTEMPTS = 8
@@ -120,14 +121,14 @@ end
 local function beginSpawnContext()
     spawnContext = nil
     local pc = World.GetPlayerController()
-    if not Safe.IsValid(pc) then return false end
+    if not Safe.IsValid(pc) then return false, "no player controller" end
     local pawn = Safe.Get(pc, "Pawn")
-    if not Safe.IsValid(pawn) then return false end
+    if not Safe.IsValid(pawn) then return false, "no player pawn" end
 
     local pawnLoc = tryE("pawn location", function() return pawn:K2_GetActorLocation() end)
     local controlRot = tryE("control rotation", function() return pc:GetControlRotation() end)
     if not controlRot then controlRot = tryE("pawn rotation", function() return pawn:K2_GetActorRotation() end) end
-    if not pawnLoc or not controlRot then return false end
+    if not pawnLoc or not controlRot then return false, "no player transform" end
 
     spawnContext = {
         x = tonumber(field(pawnLoc, "X")) or 0,
@@ -139,7 +140,18 @@ local function beginSpawnContext()
 end
 
 local function spawnOne(item, cls)
-    if not Safe.IsValid(cls) or not item.slot or not spawnContext then return false end
+    if not Safe.IsValid(cls) then
+        log("spawn drop %s: class invalid (stale after level change?)", item.name)
+        return false
+    end
+    if not item.slot then
+        log("spawn drop %s: no slot", item.name)
+        return false
+    end
+    if not spawnContext then
+        log("spawn drop %s: no spawn context", item.name)
+        return false
+    end
 
     local yaw = spawnContext.yawBase + item.slot.yawOffsetDeg
     local lx, ly = Spawn.OffsetLocation(spawnContext.x, spawnContext.y, yaw, item.slot.dist)
@@ -164,7 +176,7 @@ local function drainSpawns()
     for _, item in ipairs(pendingSpawns) do
         local state = classLoader:Get(item.path)
         if state == false then
-            -- gave up on this class: drop the request (logged at load time)
+            log("spawn drop %s: class gave up", item.name)
         elseif spawnedNow >= SPAWNS_PER_TICK or state == nil then
             survivors[#survivors + 1] = item
         else
@@ -221,13 +233,18 @@ end
 -- Public actions
 -- ---------------------------------------------------------------------------
 
-local chatWarned = false
+local lastChatError = nil
 local function notifyChat(text)
     if not config.chatNotice then return end
     local ok, err = Chat.Send(text)
-    if not ok and not chatWarned then
-        chatWarned = true
-        log("chat notice unavailable: %s", tostring(err))
+    if ok then
+        lastChatError = nil
+        return
+    end
+    err = tostring(err)
+    if err ~= lastChatError then
+        lastChatError = err
+        log("chat notice unavailable: %s", err)
     end
 end
 
@@ -240,6 +257,30 @@ local function notifyDistance()
     notifyChat(string.format("[TrainingSpawner] distance <Blue>%.2f m (%d/%d, %s)</>",
         currentDistance or -1, distanceIndex, #distances, distanceSource))
 end
+
+-- ---------------------------------------------------------------------------
+-- Level lifecycle: drop every per-level transient (pd3lib caches + mod state)
+-- ---------------------------------------------------------------------------
+
+-- Pure Lua only: lifecycle callbacks run in engine-hook context, where UFunction
+-- calls are unsafe (see pd3lib game.heist). Engine reads re-happen on the next tick.
+local function resetLevelState(reason)
+    classLoader:Reset()
+    pendingSpawns = {}
+    spawnContext = nil
+    spawned = {}
+    testSubject = nil
+    AI.Reset()
+    World.Reset()
+    Chat.Reset()
+    lastChatError = nil
+    lastRangeRefresh = -RANGE_REFRESH_SECONDS
+    log("level reset: %s", tostring(reason))
+end
+
+Lifecycle.OnLevelInit(function(levelName) resetLevelState(levelName or "level init") end)
+Lifecycle.OnLevelRestart(function() resetLevelState("restart") end)
+Lifecycle.OnReturnToMenu(function() resetLevelState("menu") end)
 
 local function cycleEnemy(delta)
     enemyIndex = Logic.CycleIndex(enemyIndex, #Logic.ROSTER, delta)
@@ -268,7 +309,11 @@ local function spawnSelected()
     local entry = Logic.ROSTER[enemyIndex]
     local d = ensureDistance()
     if type(d) ~= "number" then log("spawn: no distance available"); return end
-    if not beginSpawnContext() then log("spawn: no player pawn"); return end
+    local ctxOk, ctxErr = beginSpawnContext()
+    if not ctxOk then
+        log("spawn: %s (controllers=%d)", tostring(ctxErr), #World.FindAll("PlayerController"))
+        return
+    end
 
     if testSubject then
         if Safe.IsValid(testSubject.actor) then
@@ -290,7 +335,11 @@ local function spawnSelected()
 end
 
 local function spawnRosterArc()
-    if not beginSpawnContext() then log("roster: no player pawn"); return end
+    local ctxOk, ctxErr = beginSpawnContext()
+    if not ctxOk then
+        log("roster: %s (controllers=%d)", tostring(ctxErr), #World.FindAll("PlayerController"))
+        return
+    end
 
     pendingSpawns = {}
     classLoader:RetryFailed()
@@ -359,7 +408,8 @@ local function tick()
     end
 
     if tickCounter % 60 == 0 then
-        log("status live=%d frozen=%d pending=%d | %s", #spawned, AI.FrozenCount(), #pendingSpawns, selectionLine())
+        log("status live=%d frozen=%d pending=%d loads=%d | %s",
+            #spawned, AI.FrozenCount(), #pendingSpawns, classLoader:Pending(), selectionLine())
     end
 
     if pendingDifficultyCheckAt and os.clock() >= pendingDifficultyCheckAt then
@@ -404,7 +454,7 @@ local okShiftF10 = bind(Key.F10, { ModifierKey.SHIFT }, function() ExecuteInGame
 
 LoopAsync(1000, function() ExecuteInGameThread(tick) end)
 
-log("loaded v0.5.5 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s chatNotice=%s (IsValid global=%s)",
+log("loaded v0.5.6 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s chatNotice=%s (IsValid global=%s)",
     pd3.Version,
     tostring(okF5), tostring(okF7), tostring(okShiftF7), tostring(okF8), tostring(okShiftF8),
     tostring(okF9), tostring(okShiftF9), tostring(okCtrlF9), tostring(okCtrlShiftF9),
