@@ -164,6 +164,19 @@ Running log. Newest entries at the bottom of each section.
   `StructArray`), no pd3lib dependency. `user_config.lua` is user-editable.
 - fengari tests ALL PASS (cyclers, cm->m union/dedupe/sort, config merge, facing yaw, nudge clamps).
 
+## v0.5.5 chat notices (2026-09-28)
+
+- In-game chat printing validated: `SBZChatInGame:SendChatMessageToServer(FSBZPlayerChatEvent)`
+  with `{PlayerState, Message}` works solo (reference: SoloTrueConnoseuir; struct verified in
+  `Starbreeze.lua`). Rich-text tags come from `Content/UI/Assets/Text/DT_ChatRichTextStyles`.
+- Promoted to pd3lib as `game.chat` (`Available/Get/Send/SendFmt`) — pd3lib v2.2.0 (`bc20619`),
+  README + knowledge-base + API docs regenerated with `emmylua_doc_cli`; v2.2.1 (`49b7514`) fixed
+  the missing `pd3.chat` top-level alias (pd3lib has an explicit alias list per game module —
+  new modules must be added there too).
+- TrainingSpawner v0.5.5: enemy/distance/difficulty cycles + distance nudge announce
+  `[TrainingSpawner] …` lines (`<Object>`/`<Blue>`/`<Hud_01>` accents), config `chatNotice`
+  (default true). Verified in game (all lines render, readable, no spam on F8/F5).
+
 ## Probe (Phase 0c)
 
 - `TrainingProbe` mod deployed (F6 dump: assault managers, Settings, enemy pawns, mission state,
