@@ -33,6 +33,7 @@ local AI = pd3.ai
 local Weapons = pd3.weapons
 local Mission = pd3.mission
 local World = pd3.world
+local Chat = pd3.chat
 
 local LOADS_PER_TICK = 2
 local MAX_LOAD_ATTEMPTS = 8
@@ -220,9 +221,30 @@ end
 -- Public actions
 -- ---------------------------------------------------------------------------
 
+local chatWarned = false
+local function notifyChat(text)
+    if not config.chatNotice then return end
+    local ok, err = Chat.Send(text)
+    if not ok and not chatWarned then
+        chatWarned = true
+        log("chat notice unavailable: %s", tostring(err))
+    end
+end
+
+local function notifyEnemy()
+    notifyChat(string.format("[TrainingSpawner] enemy %d/%d - <Object>%s</>",
+        enemyIndex, #Logic.ROSTER, Logic.ROSTER[enemyIndex].name))
+end
+
+local function notifyDistance()
+    notifyChat(string.format("[TrainingSpawner] distance <Blue>%.2f m (%d/%d, %s)</>",
+        currentDistance or -1, distanceIndex, #distances, distanceSource))
+end
+
 local function cycleEnemy(delta)
     enemyIndex = Logic.CycleIndex(enemyIndex, #Logic.ROSTER, delta)
     log("%s", selectionLine())
+    notifyEnemy()
 end
 
 local function cycleDistance(delta)
@@ -231,6 +253,7 @@ local function cycleDistance(delta)
     distanceIndex = Logic.CycleIndex(distanceIndex, #distances, delta)
     currentDistance = distances[distanceIndex]
     log("%s", selectionLine())
+    notifyDistance()
 end
 
 local function nudgeDistance(delta)
@@ -238,6 +261,7 @@ local function nudgeDistance(delta)
     currentDistance = Logic.NudgeDistance(currentDistance or distances[distanceIndex] or 10, delta)
     distanceSource = "nudge"
     log("%s", selectionLine())
+    notifyDistance()
 end
 
 local function spawnSelected()
@@ -353,6 +377,8 @@ local function cycleDifficulty(delta)
     local ok, err = Mission.SetDifficultyIdx(difficultyIndex)
     log("difficulty idx=%d (%s) set=%s", difficultyIndex, tostring(Mission.DifficultyName(difficultyIndex)),
         ok and "ok" or tostring(err))
+    notifyChat(string.format("[TrainingSpawner] difficulty <Hud_01>%s</>",
+        tostring(Mission.DifficultyName(difficultyIndex))))
     pendingDifficultyCheckAt = os.clock() + 1.0
 end
 
@@ -378,9 +404,10 @@ local okShiftF10 = bind(Key.F10, { ModifierKey.SHIFT }, function() ExecuteInGame
 
 LoopAsync(1000, function() ExecuteInGameThread(tick) end)
 
-log("loaded v0.5.4 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s (IsValid global=%s)",
+log("loaded v0.5.5 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s chatNotice=%s (IsValid global=%s)",
     pd3.Version,
     tostring(okF5), tostring(okF7), tostring(okShiftF7), tostring(okF8), tostring(okShiftF8),
     tostring(okF9), tostring(okShiftF9), tostring(okCtrlF9), tostring(okCtrlShiftF9),
     tostring(okF10), tostring(okShiftF10),
-    config.distanceMode, tostring(config.freeze), tostring(type(IsValid) == "function"))
+    config.distanceMode, tostring(config.freeze), tostring(config.chatNotice),
+    tostring(type(IsValid) == "function"))

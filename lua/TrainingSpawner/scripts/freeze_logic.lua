@@ -68,6 +68,7 @@ M.DEFAULTS = {
     distances = { 2.5, 5, 10, 15, 25, 50 },
     freeze = true,
     autoSpawn = false,
+    chatNotice = true,
 }
 
 --- Merges a user config over the defaults; invalid values are ignored.
@@ -92,6 +93,7 @@ function M.MergeConfig(user)
     end
     if type(user.freeze) == "boolean" then cfg.freeze = user.freeze end
     if type(user.autoSpawn) == "boolean" then cfg.autoSpawn = user.autoSpawn end
+    if type(user.chatNotice) == "boolean" then cfg.chatNotice = user.chatNotice end
     return cfg
 end
 

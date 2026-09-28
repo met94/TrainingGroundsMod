@@ -38,6 +38,8 @@ The mod enables itself (`enabled.txt`). If it does not load, open `...\Mods\mods
   shots-to-kill counts are exact. Set `freeze = false` in the config for live-AI tests.
 - **Difficulty cycling.** Switch between Normal, Hard, Very Hard and Overkill; enemies spawned
   afterwards use the new difficulty's scaling.
+- **In-game chat notices.** Enemy, distance and difficulty changes print a colour-coded line to
+  the chat (toggle with `chatNotice` in the config).
 
 ## Key bindings
 
@@ -64,6 +66,7 @@ return {
     distances = { 2.5, 5, 10, 15, 25, 50 },  -- meters; manual mode and fallback
     freeze = true,           -- false = live-AI test subjects
     autoSpawn = false,       -- reserved; the mod never auto-spawns
+    chatNotice = true,       -- print enemy/distance/difficulty changes to the in-game chat
 }
 ```
 

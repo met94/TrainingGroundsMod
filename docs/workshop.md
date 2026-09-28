@@ -66,7 +66,7 @@ return {
 
 ### Install
 
-1. Download `TrainingSpawner-0.5.4.zip`.
+1. Download `TrainingSpawner-0.5.5.zip`.
 2. Open the zip.
 3. Drag the `TrainingSpawner` folder into:
 
@@ -118,6 +118,8 @@ Starbreeze Entertainment.
 
 ### Changelog
 
+- 0.5.5 — enemy, distance and difficulty changes are now announced in the in-game chat
+  (colour-coded, one line per change; disable with `chatNotice = false` in the config).
 - 0.5.4 — fixed spawned subjects being dropped from tracking before the freeze pass; subjects now
   stay tracked and freeze on the next tick.
 - 0.5.3 — enemy cycler consolidated to `F7` (next) and `Shift+F7` (previous), matching the
