@@ -308,12 +308,19 @@ end
 -- ---------------------------------------------------------------------------
 
 local function pruneDead()
-    local lostNames = {}
-    local survivors, lost = World.PruneValid(spawned, function(entry)
-        lostNames[#lostNames + 1] = entry.name
-    end)
-    spawned = survivors
-    for _, name in ipairs(lostNames) do log("lost %s", name) end
+    -- spawned holds entry tables, not UObjects - validate entry.actor here rather than
+    -- passing the list to World.PruneValid (which checks each element as a UObject).
+    local survivors = {}
+    local lost = 0
+    for _, entry in ipairs(spawned) do
+        if Safe.IsValid(entry.actor) then
+            survivors[#survivors + 1] = entry
+        else
+            lost = lost + 1
+            log("lost %s", entry.name)
+        end
+    end
+    if lost > 0 then spawned = survivors end
     if testSubject and not Safe.IsValid(testSubject.actor) then testSubject = nil end
 end
 
@@ -371,7 +378,7 @@ local okShiftF10 = bind(Key.F10, { ModifierKey.SHIFT }, function() ExecuteInGame
 
 LoopAsync(1000, function() ExecuteInGameThread(tick) end)
 
-log("loaded v0.5.3 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s (IsValid global=%s)",
+log("loaded v0.5.4 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s (IsValid global=%s)",
     pd3.Version,
     tostring(okF5), tostring(okF7), tostring(okShiftF7), tostring(okF8), tostring(okShiftF8),
     tostring(okF9), tostring(okShiftF9), tostring(okCtrlF9), tostring(okCtrlShiftF9),
