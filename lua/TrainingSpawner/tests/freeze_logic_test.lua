@@ -1,6 +1,8 @@
-local scripts = "D:/Programowanie/payday/3/InsurancePolicySolo/TrainingGroundsMod/lua/TrainingSpawner/scripts"
+local Source = debug.getinfo(1, "S").source
+local Dir = Source:match("^@(.*)[/\\][^/\\]*$")
+if Dir == nil then error("cannot resolve freeze_logic_test.lua directory") end
+local scripts = Dir .. "/../scripts"
 package.path = scripts .. "/?.lua;" .. package.path
-
 local Logic = require("freeze_logic")
 
 local failures = 0
@@ -73,6 +75,9 @@ check("MergeConfig invalid mode rejected", cfg4.distanceMode == "auto")
 check("MergeConfig chatNotice default", cfg.chatNotice == true)
 check("MergeConfig chatNotice false honored", Logic.MergeConfig({ chatNotice = false }).chatNotice == false)
 check("MergeConfig chatNotice invalid ignored", Logic.MergeConfig({ chatNotice = 1 }).chatNotice == true)
+check("MergeConfig keepSubjects default", cfg.keepSubjects == false)
+check("MergeConfig keepSubjects true honored", Logic.MergeConfig({ keepSubjects = true }).keepSubjects == true)
+check("MergeConfig keepSubjects invalid ignored", Logic.MergeConfig({ keepSubjects = 1 }).keepSubjects == false)
 
 check("NudgeDistance add", Logic.NudgeDistance(10, 1) == 11)
 check("NudgeDistance sub", Logic.NudgeDistance(10, -1) == 9)

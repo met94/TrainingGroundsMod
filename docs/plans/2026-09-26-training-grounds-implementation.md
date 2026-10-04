@@ -50,7 +50,7 @@ UE4SS 3.0.1 (Lua runtime), PowerShell build scripts.
 - [ ] **Step 1: Create folders**
 
 ```powershell
-$root='D:\Programowanie\payday\3\InsurancePolicySolo\TrainingGroundsMod'
+$root='D:\Programowanie\payday\3\mods\TrainingGroundsMod'
 New-Item -ItemType Directory -Force "$root\work\live_extract","$root\work\backup","$root\work\reference_mods","$root\assets","$root\dist","$root\lua","$root\scripts" | Out-Null
 ```
 
@@ -83,7 +83,7 @@ git-ignored local file if cached (`$root\work\.aeskey` is acceptable locally, ne
 ```powershell
 $key=(Get-Content 'C:\Users\AB\AppData\Roaming\FModel\AppSettings.json' -Raw | ConvertFrom-Json).PerDirectory.'D:\SteamLibrary\steamapps\common\PAYDAY3\PAYDAY3\Content\Paks'.AesKeys.mainKey
 $paks='D:\SteamLibrary\steamapps\common\PAYDAY3\PAYDAY3\Content\Paks'
-$root='D:\Programowanie\payday\3\InsurancePolicySolo\TrainingGroundsMod'
+$root='D:\Programowanie\payday\3\mods\TrainingGroundsMod'
 & 'C:\Users\AB\.cargo\bin\retoc.exe' -a $key to-legacy --version UE5_5 -f DA_AssaultManagerSettings "$paks\pakchunk0-PAK_Minimal-Windows.utoc" "$root\work\live_extract"
 Get-ChildItem "$root\work\live_extract" -Recurse -Filter 'DA_AssaultManagerSettings*' | Select-Object FullName, Length
 ```
@@ -154,7 +154,7 @@ Nexus "No Enemy". Use browser download links from the pages (`files.modworkshop.
 
 ```powershell
 $key=(Get-Content 'C:\Users\AB\AppData\Roaming\FModel\AppSettings.json' -Raw | ConvertFrom-Json).PerDirectory.'D:\SteamLibrary\steamapps\common\PAYDAY3\PAYDAY3\Content\Paks'.AesKeys.mainKey
-$ref='D:\Programowanie\payday\3\InsurancePolicySolo\TrainingGroundsMod\work\reference_mods'
+$ref='D:\Programowanie\payday\3\mods\TrainingGroundsMod\work\reference_mods'
 Get-ChildItem $ref -Recurse -Include '*.pak','*.utoc' | ForEach-Object { & 'C:\Users\AB\.cargo\bin\retoc.exe' -a $key list --path $_.FullName }
 ```
 
@@ -191,10 +191,10 @@ calls; observation only.
 - [ ] **Step 2: Syntax gate + deploy**
 
 ```powershell
-npx --yes luaparse 'D:\Programowanie\payday\3\InsurancePolicySolo\TrainingGroundsMod\lua\TrainingProbe\scripts\main.lua'
+npx --yes luaparse 'D:\Programowanie\payday\3\mods\TrainingGroundsMod\lua\TrainingProbe\scripts\main.lua'
 $dst='D:\SteamLibrary\steamapps\common\PAYDAY3\PAYDAY3\Binaries\Win64\ue4ss\Mods\TrainingProbe'
 New-Item -ItemType Directory -Force "$dst\scripts" | Out-Null
-Copy-Item 'D:\Programowanie\payday\3\InsurancePolicySolo\TrainingGroundsMod\lua\TrainingProbe\scripts\main.lua' "$dst\scripts\" -Force
+Copy-Item 'D:\Programowanie\payday\3\mods\TrainingGroundsMod\lua\TrainingProbe\scripts\main.lua' "$dst\scripts\" -Force
 New-Item -ItemType File -Force "$dst\enabled.txt" | Out-Null
 ```
 
