@@ -14,10 +14,13 @@
 -- freeze:     true = spawned enemies have AI disabled (SetAIEnabled false).
 -- autoSpawn:  reserved; v1 never auto-spawns on level entry.
 -- chatNotice: true = enemy/distance/difficulty changes are printed to the in-game chat.
+-- keepSubjects: true = F8 adds another subject at the selected distance (same yaw line)
+--               instead of destroying the previous one; use F5 to clear them all.
 return {
     distanceMode = "auto",
     distances = { 2.5, 5, 10, 15, 25, 50 },
     freeze = true,
     autoSpawn = false,
     chatNotice = true,
+    keepSubjects = false,
 }

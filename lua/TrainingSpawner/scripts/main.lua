@@ -1,4 +1,4 @@
--- TrainingSpawner v0.5.6: test-rig spawner for the Shooting Range (NewShootingRange).
+-- TrainingSpawner v0.5.7: test-rig spawner for the Shooting Range (NewShootingRange).
 -- No auto-spawn. F8 spawns the selected enemy at the selected distance, facing you.
 -- Engine work goes through the vendored pd3lib (classes loader, spawn, ai, weapons, mission).
 -- Keys:
@@ -315,7 +315,7 @@ local function spawnSelected()
         return
     end
 
-    if testSubject then
+    if testSubject and not config.keepSubjects then
         if Safe.IsValid(testSubject.actor) then
             tryE("destroy subject", function() return Spawn.Destroy(testSubject.actor) end)
         end
@@ -331,7 +331,8 @@ local function spawnSelected()
         noFreeze = not config.freeze,
     }
     enqueueUnresolved()
-    log("queued %s at %.2f m (%s, %s)", entry.name, d, distanceSource, config.freeze and "frozen" or "unfrozen")
+    log("queued %s at %.2f m (%s, %s, %s)", entry.name, d, distanceSource,
+        config.freeze and "frozen" or "unfrozen", config.keepSubjects and "keep" or "replace")
 end
 
 local function spawnRosterArc()
@@ -454,10 +455,10 @@ local okShiftF10 = bind(Key.F10, { ModifierKey.SHIFT }, function() ExecuteInGame
 
 LoopAsync(1000, function() ExecuteInGameThread(tick) end)
 
-log("loaded v0.5.6 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s chatNotice=%s (IsValid global=%s)",
+log("loaded v0.5.7 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s keepSubjects=%s chatNotice=%s (IsValid global=%s)",
     pd3.Version,
     tostring(okF5), tostring(okF7), tostring(okShiftF7), tostring(okF8), tostring(okShiftF8),
     tostring(okF9), tostring(okShiftF9), tostring(okCtrlF9), tostring(okCtrlShiftF9),
     tostring(okF10), tostring(okShiftF10),
-    config.distanceMode, tostring(config.freeze), tostring(config.chatNotice),
+    config.distanceMode, tostring(config.freeze), tostring(config.keepSubjects), tostring(config.chatNotice),
     tostring(type(IsValid) == "function"))

@@ -69,6 +69,7 @@ M.DEFAULTS = {
     freeze = true,
     autoSpawn = false,
     chatNotice = true,
+    keepSubjects = false,
 }
 
 --- Merges a user config over the defaults; invalid values are ignored.
@@ -94,6 +95,7 @@ function M.MergeConfig(user)
     if type(user.freeze) == "boolean" then cfg.freeze = user.freeze end
     if type(user.autoSpawn) == "boolean" then cfg.autoSpawn = user.autoSpawn end
     if type(user.chatNotice) == "boolean" then cfg.chatNotice = user.chatNotice end
+    if type(user.keepSubjects) == "boolean" then cfg.keepSubjects = user.keepSubjects end
     return cfg
 end
 

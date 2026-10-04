@@ -47,7 +47,7 @@ The mod enables itself (`enabled.txt`). If it does not load, open `...\Mods\mods
 | --- | --- |
 | `F5` | Clear all spawned subjects |
 | `F7` / `Shift+F7` | Next / previous enemy type |
-| `F8` | Spawn the selected enemy at the selected distance (replaces the previous one, faces you) |
+| `F8` | Spawn the selected enemy at the selected distance (replaces the previous one unless `keepSubjects`; faces you) |
 | `Shift+F8` | Spawn the full roster in an arc (legacy mode) |
 | `F9` / `Shift+F9` | Next / previous distance |
 | `Ctrl+F9` / `Ctrl+Shift+F9` | Fine nudge current distance by +1 m / -1 m |
@@ -67,6 +67,7 @@ return {
     freeze = true,           -- false = live-AI test subjects
     autoSpawn = false,       -- reserved; the mod never auto-spawns
     chatNotice = true,       -- print enemy/distance/difficulty changes to the in-game chat
+    keepSubjects = false,    -- true = F8 adds another subject instead of replacing the previous one
 }
 ```
 
