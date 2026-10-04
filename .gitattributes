@@ -1,5 +1,7 @@
-* text=auto
-*.lua text
-*.ps1 text
-*.md text
-*.json text
+# LF working trees on every platform: tooling and tests compare raw bytes and
+# generators write LF; core.autocrlf=true would otherwise check out CRLF.
+* text=auto eol=lf
+*.lua text eol=lf
+*.ps1 text eol=lf
+*.md text eol=lf
+*.json text eol=lf
