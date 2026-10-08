@@ -99,6 +99,164 @@ function M.MergeConfig(user)
     return cfg
 end
 
+-- ---------------------------------------------------------------------------
+-- Keybind config (v0.6.0)
+-- Action -> spec string ("Shift+F7"). An action missing from the user's `keys`
+-- table is disabled. Pure parsing/merging only; the Key/ModifierKey enum
+-- lookup happens at registration time in main.lua.
+-- ---------------------------------------------------------------------------
+
+M.KEY_ACTIONS = {
+    "clear", "enemyNext", "enemyPrev",
+    "spawnSelected", "spawnRosterArc",
+    "distanceNext", "distancePrev", "distanceNudgeUp", "distanceNudgeDown",
+    "difficultyNext", "difficultyPrev",
+    "freezeToggle",
+}
+
+M.DEFAULT_KEYS = {
+    clear = "F5",
+    enemyNext = "F7",
+    enemyPrev = "Shift+F7",
+    spawnSelected = "F8",
+    spawnRosterArc = "Shift+F8",
+    distanceNext = "F9",
+    distancePrev = "Shift+F9",
+    distanceNudgeUp = "Ctrl+F9",
+    distanceNudgeDown = "Ctrl+Shift+F9",
+    difficultyNext = "F10",
+    difficultyPrev = "Shift+F10",
+    freezeToggle = "F11",
+}
+
+local MOD_ALIAS = { SHIFT = "SHIFT", CONTROL = "CONTROL", CTRL = "CONTROL", ALT = "ALT" }
+local MOD_ORDER = { "SHIFT", "CONTROL", "ALT" }
+
+local function trim(s)
+    return (s:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+--- Splits on '+' while keeping empty segments ("+F5", "F5+").
+local function splitPlus(spec)
+    local parts = {}
+    local start = 1
+    while true do
+        local pos = spec:find("+", start, true)
+        if pos == nil then
+            parts[#parts + 1] = spec:sub(start)
+            return parts
+        end
+        parts[#parts + 1] = spec:sub(start, pos - 1)
+        start = pos + 1
+    end
+end
+
+--- Parses "Mod+...+Key" into `{ key = "F9", mods = { "SHIFT", "CONTROL" } }`.
+--- Modifier names are case-insensitive (Ctrl = Control); mods come back in
+--- canonical order. Returns nil plus a reason for malformed specs. Key enum
+--- membership is deliberately not checked here - main.lua does that at
+--- registration time against the UE4SS Key table.
+---@param spec any
+---@return table? parsed
+---@return string? reason
+function M.ParseKeySpec(spec)
+    if type(spec) ~= "string" then return nil, "not a string" end
+
+    local parts = splitPlus(spec)
+    for i = 1, #parts do
+        parts[i] = trim(parts[i])
+        if parts[i] == "" then return nil, "empty segment" end
+    end
+
+    local keyPart = parts[#parts]
+    if keyPart:find("[^%w_]", 1) then return nil, "invalid key name: " .. keyPart end
+
+    local seen = {}
+    for i = 1, #parts - 1 do
+        local modName = MOD_ALIAS[parts[i]:upper()]
+        if modName == nil then return nil, "unknown modifier: " .. parts[i] end
+        if seen[modName] then return nil, "duplicate modifier: " .. parts[i] end
+        seen[modName] = true
+    end
+
+    local mods = {}
+    for _, name in ipairs(MOD_ORDER) do
+        if seen[name] then mods[#mods + 1] = name end
+    end
+    return { key = keyPart:upper(), mods = mods }
+end
+
+local function addDefaults(result)
+    for _, action in ipairs(M.KEY_ACTIONS) do
+        local spec = M.DEFAULT_KEYS[action]
+        local parsed = M.ParseKeySpec(spec)
+        result.bindings[#result.bindings + 1] = {
+            action = action,
+            spec = spec,
+            key = parsed.key,
+            mods = parsed.mods,
+        }
+    end
+end
+
+--- Resolves the user's `keys` table.
+---   * nil   -> built-in defaults (backward compatible with configs predating `keys`)
+---   * false -> every action disabled
+---   * table -> only the listed actions are enabled; nil/false entries are
+---              disabled, invalid specs are disabled and reported as warnings
+---@param user any
+---@return table # { bindings = { { action, spec, key, mods } ... }, disabled = { action ... }, warnings = { string ... } }
+function M.MergeKeys(user)
+    local result = { bindings = {}, disabled = {}, warnings = {} }
+
+    if user == nil then
+        addDefaults(result)
+        return result
+    end
+    if user == false then
+        for _, action in ipairs(M.KEY_ACTIONS) do result.disabled[#result.disabled + 1] = action end
+        return result
+    end
+    if type(user) ~= "table" then
+        result.warnings[#result.warnings + 1] = "keys must be a table or false; using defaults"
+        addDefaults(result)
+        return result
+    end
+
+    local known = {}
+    for _, action in ipairs(M.KEY_ACTIONS) do known[action] = true end
+    for name in pairs(user) do
+        if not known[name] then
+            result.warnings[#result.warnings + 1] = "unknown action in keys: " .. tostring(name)
+        end
+    end
+
+    for _, action in ipairs(M.KEY_ACTIONS) do
+        local spec = user[action]
+        if spec == nil or spec == false then
+            result.disabled[#result.disabled + 1] = action
+        elseif type(spec) == "string" then
+            local parsed, reason = M.ParseKeySpec(spec)
+            if parsed then
+                result.bindings[#result.bindings + 1] = {
+                    action = action,
+                    spec = spec,
+                    key = parsed.key,
+                    mods = parsed.mods,
+                }
+            else
+                result.disabled[#result.disabled + 1] = action
+                result.warnings[#result.warnings + 1] = string.format(
+                    "keys.%s invalid (%s): %s", action, tostring(reason), spec)
+            end
+        else
+            result.disabled[#result.disabled + 1] = action
+            result.warnings[#result.warnings + 1] = string.format("keys.%s ignored (not a string)", action)
+        end
+    end
+    return result
+end
+
 --- Modulo index cycler (1-based, handles negative deltas).
 function M.CycleIndex(index, count, delta)
     if type(count) ~= "number" or count < 1 then return 1 end
