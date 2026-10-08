@@ -37,9 +37,13 @@ list in the config file.
 | `F9` / `Shift+F9` | Next / previous distance |
 | `Ctrl+F9` / `Ctrl+Shift+F9` | Fine nudge the distance by +1 m / -1 m |
 | `F10` / `Shift+F10` | Next / previous difficulty |
+| `F11` | Toggle the freeze option for the next spawns |
 
 Every action writes a line to the UE4SS log, for example:
 `enemy 4/15 Taser | distance 12.50 m (3/7, auto)`.
+
+All bindings can be rebound or disabled — set the `keys` table in `user_config.lua`; an action
+that is not listed there is simply not bound.
 
 ### Enemy roster
 
@@ -59,14 +63,28 @@ Edit `scripts\user_config.lua` in the mod folder:
 return {
     distanceMode = "auto",   -- "auto" = equipped weapon breakpoints, "manual" = use the list below
     distances = { 2.5, 5, 10, 15, 25, 50 },  -- meters; manual mode and fallback
-    freeze = true,           -- false = live-AI test subjects
+    freeze = true,           -- false = live-AI test subjects (F11 flips this at runtime)
     autoSpawn = false,       -- reserved; the mod never auto-spawns
+    keys = {                 -- action -> key ("Key" or "Mod+Key"); remove a line to disable it
+        clear = "F5",
+        enemyNext = "F7",
+        enemyPrev = "Shift+F7",
+        spawnSelected = "F8",
+        spawnRosterArc = "Shift+F8",
+        distanceNext = "F9",
+        distancePrev = "Shift+F9",
+        distanceNudgeUp = "Ctrl+F9",
+        distanceNudgeDown = "Ctrl+Shift+F9",
+        difficultyNext = "F10",
+        difficultyPrev = "Shift+F10",
+        freezeToggle = "F11",
+    },
 }
 ```
 
 ### Install
 
-1. Download `TrainingSpawner-0.5.6.zip`.
+1. Download `TrainingSpawner-0.6.0.zip`.
 2. Open the zip.
 3. Drag the `TrainingSpawner` folder into:
 
@@ -118,6 +136,11 @@ Starbreeze Entertainment.
 
 ### Changelog
 
+- 0.6.0 — runtime freeze toggle (`F11` by default) for the next spawns; all keybindings are now
+  configurable via the `keys` table in `user_config.lua` (an action that is not listed is simply
+  not bound; configs without a `keys` table keep the default layout).
+- 0.5.7 — `keepSubjects` option: `F8` can now add another subject at the selected distance
+  instead of replacing the previous one.
 - 0.5.6 — fixed the mod going dead after leaving a level: stale class and controller caches are
   dropped on every level change (and self-heal if the engine event is missed), so spawning,
   distance readout and chat keep working after returning to the menu or starting another heist.
