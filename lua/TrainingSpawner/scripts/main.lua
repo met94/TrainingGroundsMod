@@ -503,8 +503,9 @@ for _, entry in ipairs(resolvedKeys.bindings) do
         end
     end
 end
+local disabledReason = resolvedKeys.allDisabled and "keys = false" or "not in keys config"
 for _, action in ipairs(resolvedKeys.disabled) do
-    log("keybind %s: disabled (not in keys config)", action)
+    log("keybind %s: disabled (%s)", action, disabledReason)
 end
 for _, warning in ipairs(resolvedKeys.warnings) do
     log("keys config: %s", warning)

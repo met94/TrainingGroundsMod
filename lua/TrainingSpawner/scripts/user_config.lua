@@ -24,6 +24,7 @@
 --       LEFT_MOUSE_BUTTON, ...). An action NOT listed here is disabled - remove
 --       a line to unbind it. Remove the whole `keys` table to fall back to these
 --       built-in defaults; set `keys = false` to disable every binding.
+--       Two actions may share the same key combo; both run when it is pressed.
 return {
     distanceMode = "auto",
     distances = { 2.5, 5, 10, 15, 25, 50 },

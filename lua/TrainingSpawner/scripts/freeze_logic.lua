@@ -189,13 +189,19 @@ end
 local function addDefaults(result)
     for _, action in ipairs(M.KEY_ACTIONS) do
         local spec = M.DEFAULT_KEYS[action]
-        local parsed = M.ParseKeySpec(spec)
-        result.bindings[#result.bindings + 1] = {
-            action = action,
-            spec = spec,
-            key = parsed.key,
-            mods = parsed.mods,
-        }
+        local parsed, reason = M.ParseKeySpec(spec)
+        if parsed then
+            result.bindings[#result.bindings + 1] = {
+                action = action,
+                spec = spec,
+                key = parsed.key,
+                mods = parsed.mods,
+            }
+        else
+            result.disabled[#result.disabled + 1] = action
+            result.warnings[#result.warnings + 1] = string.format(
+                "default key invalid for %s (%s): %s", action, tostring(reason), tostring(spec))
+        end
     end
 end
 
@@ -205,7 +211,7 @@ end
 ---   * table -> only the listed actions are enabled; nil/false entries are
 ---              disabled, invalid specs are disabled and reported as warnings
 ---@param user any
----@return table # { bindings = { { action, spec, key, mods } ... }, disabled = { action ... }, warnings = { string ... } }
+---@return table # { bindings = { { action, spec, key, mods } ... }, disabled = { action ... }, warnings = { string ... }, allDisabled = true when keys = false }
 function M.MergeKeys(user)
     local result = { bindings = {}, disabled = {}, warnings = {} }
 
@@ -214,6 +220,7 @@ function M.MergeKeys(user)
         return result
     end
     if user == false then
+        result.allDisabled = true
         for _, action in ipairs(M.KEY_ACTIONS) do result.disabled[#result.disabled + 1] = action end
         return result
     end

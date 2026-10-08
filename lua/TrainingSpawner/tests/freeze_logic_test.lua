@@ -157,6 +157,9 @@ check("MergeKeys false -> all disabled", m2Existed and type(m2) == "table"
 local m3, _, m3Existed = call(Logic.MergeKeys, {})
 check("MergeKeys empty table -> all disabled", m3Existed and type(m3) == "table"
     and #m3.bindings == 0 and #m3.disabled == 12 and #m3.warnings == 0)
+check("MergeKeys allDisabled flag only for keys = false",
+    m2Existed and type(m2) == "table" and m2.allDisabled == true
+    and m3Existed and type(m3) == "table" and m3.allDisabled ~= true)
 
 local m4, _, m4Existed = call(Logic.MergeKeys, { clear = "F5", freezeToggle = "F11" })
 local m4Has = { clear = false, freezeToggle = false }
@@ -187,6 +190,13 @@ check("MergeKeys unknown action warned", m8Existed and type(m8) == "table" and #
 local m9, _, m9Existed = call(Logic.MergeKeys, "F5")
 check("MergeKeys non-table -> defaults + warned", m9Existed and type(m9) == "table"
     and #m9.bindings == 12 and #m9.disabled == 0 and #m9.warnings == 1)
+
+-- load robustness: an action without a valid default must be logged, not crash the mod load
+table.insert(Logic.KEY_ACTIONS, "zzMissingDefault")
+local guardOk, guardResult = pcall(Logic.MergeKeys, nil)
+table.remove(Logic.KEY_ACTIONS)
+check("MergeKeys missing default degrades gracefully", guardOk and type(guardResult) == "table"
+    and #guardResult.bindings == 12 and #guardResult.disabled == 1 and #guardResult.warnings == 1)
 
 if failures > 0 then
     print(string.format("FAILURES: %d", failures))
