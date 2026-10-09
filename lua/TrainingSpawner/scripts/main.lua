@@ -1,7 +1,7 @@
--- TrainingSpawner v0.5.7: test-rig spawner for the Shooting Range (NewShootingRange).
+-- TrainingSpawner v0.6.0: test-rig spawner for the Shooting Range (NewShootingRange).
 -- No auto-spawn. F8 spawns the selected enemy at the selected distance, facing you.
 -- Engine work goes through the vendored pd3lib (classes loader, spawn, ai, weapons, mission).
--- Keys:
+-- Default keys (all rebindable / disablable via the `keys` table in user_config.lua):
 --   F5            clear all spawned subjects
 --   F7 / Shift+F7 next / previous enemy (roster of 15)
 --   F8            spawn selected enemy (replaces the previous F8 subject)
@@ -9,6 +9,8 @@
 --   F9 / Shift+F9 next / previous distance breakpoint
 --   Ctrl+F9       +1 m fine nudge (Ctrl+Shift+F9 = -1 m)
 --   F10 / Shift+F10  next / previous difficulty (Normal..Overkill)
+--   F6            toggle the freeze config option for next spawns
+--   Shift+F6      toggle keepSubjects for next spawns
 local MOD_NAME = "TrainingSpawner"
 
 local OkPd3, pd3 = pcall(require, "pd3lib")
@@ -25,6 +27,9 @@ if not OkLogic or Logic == nil then
 end
 local OkConfig, UserConfig = pcall(require, "user_config")
 local config = Logic.MergeConfig(OkConfig and UserConfig or nil)
+local userKeys = nil
+if OkConfig and type(UserConfig) == "table" then userKeys = UserConfig.keys end
+local resolvedKeys = Logic.MergeKeys(userKeys)
 
 local Safe = pd3.safe
 local Classes = pd3.classes
@@ -258,6 +263,23 @@ local function notifyDistance()
         currentDistance or -1, distanceIndex, #distances, distanceSource))
 end
 
+local function toggleFreeze()
+    config.freeze = not config.freeze
+    log("freeze %s - next spawns %s", config.freeze and "ON" or "OFF",
+        config.freeze and "frozen" or "use live AI")
+    notifyChat(string.format("[TrainingSpawner] freeze <Object>%s</> - next spawns %s",
+        config.freeze and "ON" or "OFF", config.freeze and "frozen" or "use live AI"))
+end
+
+local function toggleKeepSubjects()
+    config.keepSubjects = not config.keepSubjects
+    log("keepSubjects %s - next spawns %s", config.keepSubjects and "ON" or "OFF",
+        config.keepSubjects and "add another subject" or "replace the previous one")
+    notifyChat(string.format("[TrainingSpawner] keepSubjects <Object>%s</> - next spawns %s",
+        config.keepSubjects and "ON" or "OFF",
+        config.keepSubjects and "add another subject" or "replace the previous one"))
+end
+
 -- ---------------------------------------------------------------------------
 -- Level lifecycle: drop every per-level transient (pd3lib caches + mod state)
 -- ---------------------------------------------------------------------------
@@ -440,25 +462,69 @@ local function bind(key, mods, fn)
     return pcall(RegisterKeyBind, key, fn)
 end
 
-local okF5 = bind(Key.F5, nil, function() ExecuteInGameThread(destroyAll) end)
-local okF7 = bind(Key.F7, nil, function() ExecuteInGameThread(function() cycleEnemy(1) end) end)
-local okShiftF7 = bind(Key.F7, { ModifierKey.SHIFT }, function() ExecuteInGameThread(function() cycleEnemy(-1) end) end)
-local okF8 = bind(Key.F8, nil, function() ExecuteInGameThread(spawnSelected) end)
-local okShiftF8 = bind(Key.F8, { ModifierKey.SHIFT }, function() ExecuteInGameThread(spawnRosterArc) end)
-local okF9 = bind(Key.F9, nil, function() ExecuteInGameThread(function() cycleDistance(1) end) end)
-local okShiftF9 = bind(Key.F9, { ModifierKey.SHIFT }, function() ExecuteInGameThread(function() cycleDistance(-1) end) end)
-local okCtrlF9 = bind(Key.F9, { ModifierKey.CONTROL }, function() ExecuteInGameThread(function() nudgeDistance(1) end) end)
-local okCtrlShiftF9 = bind(Key.F9, { ModifierKey.CONTROL, ModifierKey.SHIFT },
-    function() ExecuteInGameThread(function() nudgeDistance(-1) end) end)
-local okF10 = bind(Key.F10, nil, function() ExecuteInGameThread(function() cycleDifficulty(1) end) end)
-local okShiftF10 = bind(Key.F10, { ModifierKey.SHIFT }, function() ExecuteInGameThread(function() cycleDifficulty(-1) end) end)
+-- Action -> game-thread function. Registration follows the resolved `keys`
+-- config (freeze_logic.MergeKeys); an action missing from user_config.lua is
+-- not registered at all.
+local handlers = {
+    clear = destroyAll,
+    enemyNext = function() cycleEnemy(1) end,
+    enemyPrev = function() cycleEnemy(-1) end,
+    spawnSelected = spawnSelected,
+    spawnRosterArc = spawnRosterArc,
+    distanceNext = function() cycleDistance(1) end,
+    distancePrev = function() cycleDistance(-1) end,
+    distanceNudgeUp = function() nudgeDistance(1) end,
+    distanceNudgeDown = function() nudgeDistance(-1) end,
+    difficultyNext = function() cycleDifficulty(1) end,
+    difficultyPrev = function() cycleDifficulty(-1) end,
+    freezeToggle = toggleFreeze,
+    keepSubjectsToggle = toggleKeepSubjects,
+}
+
+-- Maps a parsed { key = "F9", mods = { "SHIFT", ... } } to UE4SS constants;
+-- unknown names disable the binding instead of crashing the mod load.
+local function resolveBinding(entry)
+    local keyCode = Key[entry.key]
+    if keyCode == nil then return nil, nil, "unknown key: " .. entry.key end
+    local mods = {}
+    for _, name in ipairs(entry.mods) do
+        local code = ModifierKey[name]
+        if code == nil then return nil, nil, "unknown modifier: " .. name end
+        mods[#mods + 1] = code
+    end
+    return keyCode, mods
+end
+
+local registeredCount = 0
+for _, entry in ipairs(resolvedKeys.bindings) do
+    local handler = handlers[entry.action]
+    local keyCode, mods, reason = resolveBinding(entry)
+    if handler == nil then
+        log("keybind %s: no handler (internal)", entry.action)
+    elseif keyCode == nil then
+        log("keybind %s: disabled (%s, spec %s)", entry.action, reason, entry.spec)
+    else
+        local okBind, bindErr = bind(keyCode, #mods > 0 and mods or nil,
+            function() ExecuteInGameThread(handler) end)
+        if okBind then
+            registeredCount = registeredCount + 1
+            log("keybind %s: %s registered", entry.action, entry.spec)
+        else
+            log("keybind %s: FAILED - %s (spec %s)", entry.action, tostring(bindErr), entry.spec)
+        end
+    end
+end
+local disabledReason = resolvedKeys.allDisabled and "keys = false" or "not in keys config"
+for _, action in ipairs(resolvedKeys.disabled) do
+    log("keybind %s: disabled (%s)", action, disabledReason)
+end
+for _, warning in ipairs(resolvedKeys.warnings) do
+    log("keys config: %s", warning)
+end
 
 LoopAsync(1000, function() ExecuteInGameThread(tick) end)
 
-log("loaded v0.5.7 (pd3lib v%d) - F5 clear=%s F7/ShiftF7 enemy=%s/%s F8 spawn=%s ShiftF8 arc=%s F9 dist=%s/%s CtrlF9 nudge=%s/%s F10 diff=%s/%s | mode=%s freeze=%s keepSubjects=%s chatNotice=%s (IsValid global=%s)",
-    pd3.Version,
-    tostring(okF5), tostring(okF7), tostring(okShiftF7), tostring(okF8), tostring(okShiftF8),
-    tostring(okF9), tostring(okShiftF9), tostring(okCtrlF9), tostring(okCtrlShiftF9),
-    tostring(okF10), tostring(okShiftF10),
+log("loaded v0.6.0 (pd3lib v%d) - bindings %d/%d active | mode=%s freeze=%s keepSubjects=%s chatNotice=%s (IsValid global=%s)",
+    pd3.Version, registeredCount, #Logic.KEY_ACTIONS,
     config.distanceMode, tostring(config.freeze), tostring(config.keepSubjects), tostring(config.chatNotice),
     tostring(type(IsValid) == "function"))

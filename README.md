@@ -35,7 +35,8 @@ The mod enables itself (`enabled.txt`). If it does not load, open `...\Mods\mods
   shows as range rows (damage and crit-multiplier breakpoints, converted to meters). Switch to a
   manual list in the config when perks or attachments move the breakpoints for you.
 - **Frozen by default.** Spawned enemies have their AI disabled (no movement, no shooting) so
-  shots-to-kill counts are exact. Set `freeze = false` in the config for live-AI tests.
+  shots-to-kill counts are exact. Set `freeze = false` in the config for live-AI tests, or press
+  `F6` (rebindable) to flip the option at runtime — it applies to the next spawns.
 - **Difficulty cycling.** Switch between Normal, Hard, Very Hard and Overkill; enemies spawned
   afterwards use the new difficulty's scaling.
 - **In-game chat notices.** Enemy, distance and difficulty changes print a colour-coded line to
@@ -52,9 +53,15 @@ The mod enables itself (`enabled.txt`). If it does not load, open `...\Mods\mods
 | `F9` / `Shift+F9` | Next / previous distance |
 | `Ctrl+F9` / `Ctrl+Shift+F9` | Fine nudge current distance by +1 m / -1 m |
 | `F10` / `Shift+F10` | Next / previous difficulty |
+| `F6` | Toggle `freeze` for the next spawns (chat + log feedback) |
+| `Shift+F6` | Toggle `keepSubjects` for the next spawns (F8 replaces ↔ adds another) |
+
+Every binding is rebindable and each one can be disabled: configure the `keys` table in
+`user_config.lua` (see below). An action that is not listed there is simply not bound.
 
 Each action prints a line to the UE4SS log, e.g.
-`enemy 4/15 Taser | distance 12.50 m (3/7, auto)`.
+`enemy 4/15 Taser | distance 12.50 m (3/7, auto)`. The load log lists every binding
+(`keybind freezeToggle: F6 registered`) and every disabled one.
 
 ## Configuration
 
@@ -64,15 +71,39 @@ Edit `scripts\user_config.lua` inside the deployed mod folder:
 return {
     distanceMode = "auto",   -- "auto" = equipped weapon breakpoints, "manual" = use the list below
     distances = { 2.5, 5, 10, 15, 25, 50 },  -- meters; manual mode and fallback
-    freeze = true,           -- false = live-AI test subjects
+    freeze = true,           -- false = live-AI test subjects (F6 flips this at runtime)
     autoSpawn = false,       -- reserved; the mod never auto-spawns
     chatNotice = true,       -- print enemy/distance/difficulty changes to the in-game chat
-    keepSubjects = false,    -- true = F8 adds another subject instead of replacing the previous one
+    keepSubjects = false,    -- true = F8 adds another subject instead of replacing it (Shift+F6 flips)
+    keys = {                 -- action -> key ("Key" or "Mod+Key"); remove a line to disable it
+        clear = "F5",
+        enemyNext = "F7",
+        enemyPrev = "Shift+F7",
+        spawnSelected = "F8",
+        spawnRosterArc = "Shift+F8",
+        distanceNext = "F9",
+        distancePrev = "Shift+F9",
+        distanceNudgeUp = "Ctrl+F9",
+        distanceNudgeDown = "Ctrl+Shift+F9",
+        difficultyNext = "F10",
+        difficultyPrev = "Shift+F10",
+        freezeToggle = "F6",
+        keepSubjectsToggle = "Shift+F6",
+    },
 }
 ```
 
+`keys` specs are `Mod+Key` combos (`Shift+F7`, `Ctrl+Shift+F9`; `Ctrl` = `Control`). Key names
+are the UE4SS `Key` enum names such as `F1`..`F24`, `NUM_ONE`, `SPACE`, `A`..`Z`. The table above
+ships with every default, mirroring the built-ins in `freeze_logic.lua` — entries you set
+override them. Edit a line to rebind, delete a line to disable that binding, delete the whole
+table to fall back to the built-ins, or set `keys = false` to disable every binding. Invalid
+specs are disabled and reported in the UE4SS log.
+
 `deploy.ps1` preserves an edited `user_config.lua` across redeploys (it is created from the
-template only when missing).
+template only when missing). An already-edited config therefore does not gain new options added
+by an upgrade (such as `keys`) — the built-in defaults keep working; copy the new block from the
+template to customize it.
 
 ## Compatibility notes
 

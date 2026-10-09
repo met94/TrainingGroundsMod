@@ -84,6 +84,138 @@ check("NudgeDistance sub", Logic.NudgeDistance(10, -1) == 9)
 check("NudgeDistance clamp low", Logic.NudgeDistance(1, -5) == 1)
 check("NudgeDistance clamp high", Logic.NudgeDistance(499.5, 5) == 500)
 
+-- v0.6.0 additions: configurable keybindings (keys table in user_config.lua).
+-- call() distinguishes "returned nil because rejected" from "missing / crashed".
+local function call(fn, ...)
+    if type(fn) ~= "function" then return nil, "missing function", false end
+    local ok, a, b = pcall(fn, ...)
+    if not ok then return nil, "pcall error: " .. tostring(a), false end
+    return a, b, true
+end
+
+check("KEY_ACTIONS exists", type(Logic.KEY_ACTIONS) == "table")
+check("KEY_ACTIONS has 13 actions", type(Logic.KEY_ACTIONS) == "table" and #Logic.KEY_ACTIONS == 13)
+check("DEFAULT_KEYS exists", type(Logic.DEFAULT_KEYS) == "table")
+check("DEFAULT_KEYS freezeToggle = F6",
+    type(Logic.DEFAULT_KEYS) == "table" and Logic.DEFAULT_KEYS.freezeToggle == "F6")
+check("DEFAULT_KEYS keepSubjectsToggle = Shift+F6",
+    type(Logic.DEFAULT_KEYS) == "table" and Logic.DEFAULT_KEYS.keepSubjectsToggle == "Shift+F6")
+local defaultsCoverAll = type(Logic.KEY_ACTIONS) == "table" and type(Logic.DEFAULT_KEYS) == "table"
+if defaultsCoverAll then
+    for _, action in ipairs(Logic.KEY_ACTIONS) do
+        if type(Logic.DEFAULT_KEYS[action]) ~= "string" then defaultsCoverAll = false end
+    end
+end
+check("DEFAULT_KEYS covers every action", defaultsCoverAll)
+
+local spec1 = call(Logic.ParseKeySpec, "F5")
+check("ParseKeySpec bare key", type(spec1) == "table" and spec1.key == "F5" and #spec1.mods == 0)
+
+local spec2 = call(Logic.ParseKeySpec, "Shift+F7")
+check("ParseKeySpec shift modifier", type(spec2) == "table" and spec2.key == "F7"
+    and #spec2.mods == 1 and spec2.mods[1] == "SHIFT")
+
+local spec3 = call(Logic.ParseKeySpec, "ctrl+shift+f9")
+check("ParseKeySpec lowercase + canonical order", type(spec3) == "table" and spec3.key == "F9"
+    and #spec3.mods == 2 and spec3.mods[1] == "SHIFT" and spec3.mods[2] == "CONTROL")
+
+local spec4 = call(Logic.ParseKeySpec, " Shift + alt + f10 ")
+check("ParseKeySpec trims whitespace", type(spec4) == "table" and spec4.key == "F10"
+    and #spec4.mods == 2 and spec4.mods[1] == "SHIFT" and spec4.mods[2] == "ALT")
+
+local badNil, badNilErr, badNilExisted = call(Logic.ParseKeySpec, nil)
+check("ParseKeySpec nil rejected", badNilExisted and badNil == nil and type(badNilErr) == "string")
+local badNum, badNumErr, badNumExisted = call(Logic.ParseKeySpec, 123)
+check("ParseKeySpec non-string rejected", badNumExisted and badNum == nil and type(badNumErr) == "string")
+local badEmpty, badEmptyErr, badEmptyExisted = call(Logic.ParseKeySpec, "")
+check("ParseKeySpec empty rejected", badEmptyExisted and badEmpty == nil and type(badEmptyErr) == "string")
+local badDangle, badDangleErr, badDangleExisted = call(Logic.ParseKeySpec, "Shift+")
+check("ParseKeySpec dangling modifier rejected", badDangleExisted and badDangle == nil and type(badDangleErr) == "string")
+local badDup, badDupErr, badDupExisted = call(Logic.ParseKeySpec, "Shift+Shift+F5")
+check("ParseKeySpec duplicate modifier rejected", badDupExisted and badDup == nil and type(badDupErr) == "string")
+local badMod, badModErr, badModExisted = call(Logic.ParseKeySpec, "Foo+F5")
+check("ParseKeySpec unknown modifier rejected", badModExisted and badMod == nil and type(badModErr) == "string")
+local badTwoKeys, badTwoKeysErr, badTwoKeysExisted = call(Logic.ParseKeySpec, "F5+F6")
+check("ParseKeySpec second key rejected", badTwoKeysExisted and badTwoKeys == nil and type(badTwoKeysErr) == "string")
+
+local m1, _, m1Existed = call(Logic.MergeKeys, nil)
+check("MergeKeys nil -> defaults", m1Existed and type(m1) == "table"
+    and #m1.bindings == 13 and #m1.disabled == 0 and #m1.warnings == 0)
+local m1Ordered = m1Existed and type(m1) == "table"
+if m1Ordered then
+    for i, action in ipairs(Logic.KEY_ACTIONS) do
+        if not m1.bindings[i] or m1.bindings[i].action ~= action then m1Ordered = false end
+    end
+end
+check("MergeKeys bindings follow KEY_ACTIONS order", m1Ordered)
+check("MergeKeys defaults carry parsed key/mods",
+    m1Existed and type(m1) == "table" and m1.bindings[1] ~= nil
+    and type(m1.bindings[1].key) == "string" and type(m1.bindings[1].mods) == "table")
+
+local m2, _, m2Existed = call(Logic.MergeKeys, false)
+check("MergeKeys false -> all disabled", m2Existed and type(m2) == "table"
+    and #m2.bindings == 0 and #m2.disabled == 13)
+
+local m3, _, m3Existed = call(Logic.MergeKeys, {})
+check("MergeKeys empty table -> all disabled", m3Existed and type(m3) == "table"
+    and #m3.bindings == 0 and #m3.disabled == 13 and #m3.warnings == 0)
+check("MergeKeys allDisabled flag only for keys = false",
+    m2Existed and type(m2) == "table" and m2.allDisabled == true
+    and m3Existed and type(m3) == "table" and m3.allDisabled ~= true)
+
+local m4, _, m4Existed = call(Logic.MergeKeys,
+    { clear = "F5", freezeToggle = "F6", keepSubjectsToggle = "Shift+F6" })
+local m4Has = { clear = false, freezeToggle = false, keepSubjectsToggle = false }
+if m4Existed and type(m4) == "table" then
+    for _, b in ipairs(m4.bindings) do
+        if b.action == "clear" and b.spec == "F5" then m4Has.clear = true end
+        if b.action == "freezeToggle" and b.spec == "F6" then m4Has.freezeToggle = true end
+        if b.action == "keepSubjectsToggle" and b.spec == "Shift+F6" then m4Has.keepSubjectsToggle = true end
+    end
+end
+check("MergeKeys only listed actions bound", m4Existed and type(m4) == "table"
+    and #m4.bindings == 3 and #m4.disabled == 10
+    and m4Has.clear and m4Has.freezeToggle and m4Has.keepSubjectsToggle)
+
+local m5, _, m5Existed = call(Logic.MergeKeys, { clear = "F5", enemyNext = false })
+check("MergeKeys false entry disables", m5Existed and type(m5) == "table"
+    and #m5.bindings == 1 and #m5.disabled == 12)
+
+local m6, _, m6Existed = call(Logic.MergeKeys, { clear = "Shift+Shift+F5" })
+check("MergeKeys invalid spec disabled + warned", m6Existed and type(m6) == "table"
+    and #m6.bindings == 0 and #m6.disabled == 13 and #m6.warnings == 1)
+
+local m7, _, m7Existed = call(Logic.MergeKeys, { clear = 42 })
+check("MergeKeys non-string disabled + warned", m7Existed and type(m7) == "table"
+    and #m7.bindings == 0 and #m7.disabled == 13 and #m7.warnings == 1)
+
+local m8, _, m8Existed = call(Logic.MergeKeys, { bogusAction = "F1" })
+check("MergeKeys unknown action warned", m8Existed and type(m8) == "table" and #m8.warnings == 1)
+
+local m9, _, m9Existed = call(Logic.MergeKeys, "F5")
+check("MergeKeys non-table -> defaults + warned", m9Existed and type(m9) == "table"
+    and #m9.bindings == 13 and #m9.disabled == 0 and #m9.warnings == 1)
+
+-- load robustness: an action without a valid default must be logged, not crash the mod load
+table.insert(Logic.KEY_ACTIONS, "zzMissingDefault")
+local guardOk, guardResult = pcall(Logic.MergeKeys, nil)
+table.remove(Logic.KEY_ACTIONS)
+check("MergeKeys missing default degrades gracefully", guardOk and type(guardResult) == "table"
+    and #guardResult.bindings == 13 and #guardResult.disabled == 1 and #guardResult.warnings == 1)
+
+-- the user_config.lua template ships the same defaults as freeze_logic.DEFAULT_KEYS
+-- (user_config overrides the built-ins; delete a line to disable that binding).
+local OkTpl, Tpl = pcall(require, "user_config")
+local tplKeys = OkTpl and type(Tpl) == "table" and Tpl.keys or nil
+local tplResult = type(tplKeys) == "table" and Logic.MergeKeys(tplKeys) or nil
+local tplInSync = tplResult ~= nil and #tplResult.bindings == 13 and #tplResult.warnings == 0
+if tplInSync then
+    for _, b in ipairs(tplResult.bindings) do
+        if Logic.DEFAULT_KEYS[b.action] ~= b.spec then tplInSync = false end
+    end
+end
+check("user_config template keys mirror DEFAULT_KEYS", tplInSync == true)
+
 if failures > 0 then
     print(string.format("FAILURES: %d", failures))
     os.exit(1)
