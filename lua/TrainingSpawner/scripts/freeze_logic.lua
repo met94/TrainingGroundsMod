@@ -111,7 +111,7 @@ M.KEY_ACTIONS = {
     "spawnSelected", "spawnRosterArc",
     "distanceNext", "distancePrev", "distanceNudgeUp", "distanceNudgeDown",
     "difficultyNext", "difficultyPrev",
-    "freezeToggle",
+    "freezeToggle", "keepSubjectsToggle",
 }
 
 M.DEFAULT_KEYS = {
@@ -127,6 +127,7 @@ M.DEFAULT_KEYS = {
     difficultyNext = "F10",
     difficultyPrev = "Shift+F10",
     freezeToggle = "F6",
+    keepSubjectsToggle = "Shift+F6",
 }
 
 local MOD_ALIAS = { SHIFT = "SHIFT", CONTROL = "CONTROL", CTRL = "CONTROL", ALT = "ALT" }

@@ -10,6 +10,7 @@
 --   Ctrl+F9       +1 m fine nudge (Ctrl+Shift+F9 = -1 m)
 --   F10 / Shift+F10  next / previous difficulty (Normal..Overkill)
 --   F6            toggle the freeze config option for next spawns
+--   Shift+F6      toggle keepSubjects for next spawns
 local MOD_NAME = "TrainingSpawner"
 
 local OkPd3, pd3 = pcall(require, "pd3lib")
@@ -270,6 +271,15 @@ local function toggleFreeze()
         config.freeze and "ON" or "OFF", config.freeze and "frozen" or "use live AI"))
 end
 
+local function toggleKeepSubjects()
+    config.keepSubjects = not config.keepSubjects
+    log("keepSubjects %s - next spawns %s", config.keepSubjects and "ON" or "OFF",
+        config.keepSubjects and "add another subject" or "replace the previous one")
+    notifyChat(string.format("[TrainingSpawner] keepSubjects <Object>%s</> - next spawns %s",
+        config.keepSubjects and "ON" or "OFF",
+        config.keepSubjects and "add another subject" or "replace the previous one"))
+end
+
 -- ---------------------------------------------------------------------------
 -- Level lifecycle: drop every per-level transient (pd3lib caches + mod state)
 -- ---------------------------------------------------------------------------
@@ -468,6 +478,7 @@ local handlers = {
     difficultyNext = function() cycleDifficulty(1) end,
     difficultyPrev = function() cycleDifficulty(-1) end,
     freezeToggle = toggleFreeze,
+    keepSubjectsToggle = toggleKeepSubjects,
 }
 
 -- Maps a parsed { key = "F9", mods = { "SHIFT", ... } } to UE4SS constants;

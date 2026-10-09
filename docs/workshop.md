@@ -38,6 +38,7 @@ list in the config file.
 | `Ctrl+F9` / `Ctrl+Shift+F9` | Fine nudge the distance by +1 m / -1 m |
 | `F10` / `Shift+F10` | Next / previous difficulty |
 | `F6` | Toggle the freeze option for the next spawns |
+| `Shift+F6` | Toggle keepSubjects for the next spawns (F8 replaces ↔ adds another) |
 
 Every action writes a line to the UE4SS log, for example:
 `enemy 4/15 Taser | distance 12.50 m (3/7, auto)`.
@@ -78,6 +79,7 @@ return {
         difficultyNext = "F10",
         difficultyPrev = "Shift+F10",
         freezeToggle = "F6",
+        keepSubjectsToggle = "Shift+F6",
     },
 }
 ```
@@ -142,9 +144,10 @@ Starbreeze Entertainment.
 
 ### Changelog
 
-- 0.6.0 — runtime freeze toggle (`F6` by default) for the next spawns; all keybindings are now
-  configurable via the `keys` table in `user_config.lua` (an action that is not listed is simply
-  not bound; configs without a `keys` table keep the default layout).
+- 0.6.0 — runtime freeze toggle (`F6` by default) and keepSubjects toggle (`Shift+F6` by default)
+  for the next spawns; all keybindings are now configurable via the `keys` table in
+  `user_config.lua` (an action that is not listed is simply not bound; configs without a `keys`
+  table keep the default layout).
 - 0.5.7 — `keepSubjects` option: `F8` can now add another subject at the selected distance
   instead of replacing the previous one.
 - 0.5.6 — fixed the mod going dead after leaving a level: stale class and controller caches are

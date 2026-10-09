@@ -18,6 +18,7 @@
 -- chatNotice: true = enemy/distance/difficulty changes are printed to the in-game chat.
 -- keepSubjects: true = F8 adds another subject at the selected distance (same yaw line)
 --               instead of destroying the previous one; use F5 to clear them all.
+--               The keepSubjectsToggle key (default Shift+F6) flips this at runtime.
 --
 -- keys: action -> key spec ("Key" or "Mod+Key", e.g. "Shift+F7"; Ctrl = Control,
 --       key names are the UE4SS Key enum names: F1..F24, NUM_ONE, SPACE, A..Z,
@@ -46,5 +47,6 @@ return {
         difficultyNext = "F10",
         difficultyPrev = "Shift+F10",
         freezeToggle = "F6",
+        keepSubjectsToggle = "Shift+F6",
     },
 }

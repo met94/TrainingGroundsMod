@@ -54,6 +54,7 @@ The mod enables itself (`enabled.txt`). If it does not load, open `...\Mods\mods
 | `Ctrl+F9` / `Ctrl+Shift+F9` | Fine nudge current distance by +1 m / -1 m |
 | `F10` / `Shift+F10` | Next / previous difficulty |
 | `F6` | Toggle `freeze` for the next spawns (chat + log feedback) |
+| `Shift+F6` | Toggle `keepSubjects` for the next spawns (F8 replaces ↔ adds another) |
 
 Every binding is rebindable and each one can be disabled: configure the `keys` table in
 `user_config.lua` (see below). An action that is not listed there is simply not bound.
@@ -73,7 +74,7 @@ return {
     freeze = true,           -- false = live-AI test subjects (F6 flips this at runtime)
     autoSpawn = false,       -- reserved; the mod never auto-spawns
     chatNotice = true,       -- print enemy/distance/difficulty changes to the in-game chat
-    keepSubjects = false,    -- true = F8 adds another subject instead of replacing the previous one
+    keepSubjects = false,    -- true = F8 adds another subject instead of replacing it (Shift+F6 flips)
     keys = {                 -- action -> key ("Key" or "Mod+Key"); remove a line to disable it
         clear = "F5",
         enemyNext = "F7",
@@ -87,6 +88,7 @@ return {
         difficultyNext = "F10",
         difficultyPrev = "Shift+F10",
         freezeToggle = "F6",
+        keepSubjectsToggle = "Shift+F6",
     },
 }
 ```
