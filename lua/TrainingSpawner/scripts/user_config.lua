@@ -12,7 +12,7 @@
 --   are not always visible to the live read - correct them here by hand.
 --
 -- freeze:     true = spawned enemies have AI disabled (SetAIEnabled false).
---             The freezeToggle key (default F11) flips this at runtime; the
+--             The freezeToggle key (default F6) flips this at runtime; the
 --             change applies to enemies spawned afterwards, not existing ones.
 -- autoSpawn:  reserved; v1 never auto-spawns on level entry.
 -- chatNotice: true = enemy/distance/difficulty changes are printed to the in-game chat.
@@ -45,6 +45,6 @@ return {
         distanceNudgeDown = "Ctrl+Shift+F9",
         difficultyNext = "F10",
         difficultyPrev = "Shift+F10",
-        freezeToggle = "F11",
+        freezeToggle = "F6",
     },
 }

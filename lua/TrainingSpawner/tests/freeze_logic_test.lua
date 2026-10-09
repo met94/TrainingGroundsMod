@@ -96,8 +96,8 @@ end
 check("KEY_ACTIONS exists", type(Logic.KEY_ACTIONS) == "table")
 check("KEY_ACTIONS has 12 actions", type(Logic.KEY_ACTIONS) == "table" and #Logic.KEY_ACTIONS == 12)
 check("DEFAULT_KEYS exists", type(Logic.DEFAULT_KEYS) == "table")
-check("DEFAULT_KEYS freezeToggle = F11",
-    type(Logic.DEFAULT_KEYS) == "table" and Logic.DEFAULT_KEYS.freezeToggle == "F11")
+check("DEFAULT_KEYS freezeToggle = F6",
+    type(Logic.DEFAULT_KEYS) == "table" and Logic.DEFAULT_KEYS.freezeToggle == "F6")
 local defaultsCoverAll = type(Logic.KEY_ACTIONS) == "table" and type(Logic.DEFAULT_KEYS) == "table"
 if defaultsCoverAll then
     for _, action in ipairs(Logic.KEY_ACTIONS) do
@@ -161,12 +161,12 @@ check("MergeKeys allDisabled flag only for keys = false",
     m2Existed and type(m2) == "table" and m2.allDisabled == true
     and m3Existed and type(m3) == "table" and m3.allDisabled ~= true)
 
-local m4, _, m4Existed = call(Logic.MergeKeys, { clear = "F5", freezeToggle = "F11" })
+local m4, _, m4Existed = call(Logic.MergeKeys, { clear = "F5", freezeToggle = "F6" })
 local m4Has = { clear = false, freezeToggle = false }
 if m4Existed and type(m4) == "table" then
     for _, b in ipairs(m4.bindings) do
         if b.action == "clear" and b.spec == "F5" then m4Has.clear = true end
-        if b.action == "freezeToggle" and b.spec == "F11" then m4Has.freezeToggle = true end
+        if b.action == "freezeToggle" and b.spec == "F6" then m4Has.freezeToggle = true end
     end
 end
 check("MergeKeys only listed actions bound", m4Existed and type(m4) == "table"

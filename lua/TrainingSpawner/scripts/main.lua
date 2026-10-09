@@ -9,7 +9,7 @@
 --   F9 / Shift+F9 next / previous distance breakpoint
 --   Ctrl+F9       +1 m fine nudge (Ctrl+Shift+F9 = -1 m)
 --   F10 / Shift+F10  next / previous difficulty (Normal..Overkill)
---   F11           toggle the freeze config option for next spawns
+--   F6            toggle the freeze config option for next spawns
 local MOD_NAME = "TrainingSpawner"
 
 local OkPd3, pd3 = pcall(require, "pd3lib")

@@ -36,7 +36,7 @@ The mod enables itself (`enabled.txt`). If it does not load, open `...\Mods\mods
   manual list in the config when perks or attachments move the breakpoints for you.
 - **Frozen by default.** Spawned enemies have their AI disabled (no movement, no shooting) so
   shots-to-kill counts are exact. Set `freeze = false` in the config for live-AI tests, or press
-  `F11` (rebindable) to flip the option at runtime — it applies to the next spawns.
+  `F6` (rebindable) to flip the option at runtime — it applies to the next spawns.
 - **Difficulty cycling.** Switch between Normal, Hard, Very Hard and Overkill; enemies spawned
   afterwards use the new difficulty's scaling.
 - **In-game chat notices.** Enemy, distance and difficulty changes print a colour-coded line to
@@ -53,14 +53,14 @@ The mod enables itself (`enabled.txt`). If it does not load, open `...\Mods\mods
 | `F9` / `Shift+F9` | Next / previous distance |
 | `Ctrl+F9` / `Ctrl+Shift+F9` | Fine nudge current distance by +1 m / -1 m |
 | `F10` / `Shift+F10` | Next / previous difficulty |
-| `F11` | Toggle `freeze` for the next spawns (chat + log feedback) |
+| `F6` | Toggle `freeze` for the next spawns (chat + log feedback) |
 
 Every binding is rebindable and each one can be disabled: configure the `keys` table in
 `user_config.lua` (see below). An action that is not listed there is simply not bound.
 
 Each action prints a line to the UE4SS log, e.g.
 `enemy 4/15 Taser | distance 12.50 m (3/7, auto)`. The load log lists every binding
-(`keybind freezeToggle: F11 registered`) and every disabled one.
+(`keybind freezeToggle: F6 registered`) and every disabled one.
 
 ## Configuration
 
@@ -70,7 +70,7 @@ Edit `scripts\user_config.lua` inside the deployed mod folder:
 return {
     distanceMode = "auto",   -- "auto" = equipped weapon breakpoints, "manual" = use the list below
     distances = { 2.5, 5, 10, 15, 25, 50 },  -- meters; manual mode and fallback
-    freeze = true,           -- false = live-AI test subjects (F11 flips this at runtime)
+    freeze = true,           -- false = live-AI test subjects (F6 flips this at runtime)
     autoSpawn = false,       -- reserved; the mod never auto-spawns
     chatNotice = true,       -- print enemy/distance/difficulty changes to the in-game chat
     keepSubjects = false,    -- true = F8 adds another subject instead of replacing the previous one
@@ -86,7 +86,7 @@ return {
         distanceNudgeDown = "Ctrl+Shift+F9",
         difficultyNext = "F10",
         difficultyPrev = "Shift+F10",
-        freezeToggle = "F11",
+        freezeToggle = "F6",
     },
 }
 ```

@@ -126,7 +126,7 @@ M.DEFAULT_KEYS = {
     distanceNudgeDown = "Ctrl+Shift+F9",
     difficultyNext = "F10",
     difficultyPrev = "Shift+F10",
-    freezeToggle = "F11",
+    freezeToggle = "F6",
 }
 
 local MOD_ALIAS = { SHIFT = "SHIFT", CONTROL = "CONTROL", CTRL = "CONTROL", ALT = "ALT" }
