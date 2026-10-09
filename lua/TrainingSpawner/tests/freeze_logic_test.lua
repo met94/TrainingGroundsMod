@@ -198,6 +198,19 @@ table.remove(Logic.KEY_ACTIONS)
 check("MergeKeys missing default degrades gracefully", guardOk and type(guardResult) == "table"
     and #guardResult.bindings == 12 and #guardResult.disabled == 1 and #guardResult.warnings == 1)
 
+-- the user_config.lua template ships the same defaults as freeze_logic.DEFAULT_KEYS
+-- (user_config overrides the built-ins; delete a line to disable that binding).
+local OkTpl, Tpl = pcall(require, "user_config")
+local tplKeys = OkTpl and type(Tpl) == "table" and Tpl.keys or nil
+local tplResult = type(tplKeys) == "table" and Logic.MergeKeys(tplKeys) or nil
+local tplInSync = tplResult ~= nil and #tplResult.bindings == 12 and #tplResult.warnings == 0
+if tplInSync then
+    for _, b in ipairs(tplResult.bindings) do
+        if Logic.DEFAULT_KEYS[b.action] ~= b.spec then tplInSync = false end
+    end
+end
+check("user_config template keys mirror DEFAULT_KEYS", tplInSync == true)
+
 if failures > 0 then
     print(string.format("FAILURES: %d", failures))
     os.exit(1)
