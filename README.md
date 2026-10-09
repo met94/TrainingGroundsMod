@@ -92,12 +92,16 @@ return {
 ```
 
 `keys` specs are `Mod+Key` combos (`Shift+F7`, `Ctrl+Shift+F9`; `Ctrl` = `Control`). Key names
-are the UE4SS `Key` enum names such as `F1`..`F24`, `NUM_ONE`, `SPACE`, `A`..`Z`. An action
-missing from the table is not bound at all; `keys = false` disables every binding; deleting the
-whole table restores the defaults above. Invalid specs are disabled and reported in the UE4SS log.
+are the UE4SS `Key` enum names such as `F1`..`F24`, `NUM_ONE`, `SPACE`, `A`..`Z`. The table above
+ships with every default, mirroring the built-ins in `freeze_logic.lua` — entries you set
+override them. Edit a line to rebind, delete a line to disable that binding, delete the whole
+table to fall back to the built-ins, or set `keys = false` to disable every binding. Invalid
+specs are disabled and reported in the UE4SS log.
 
 `deploy.ps1` preserves an edited `user_config.lua` across redeploys (it is created from the
-template only when missing).
+template only when missing). An already-edited config therefore does not gain new options added
+by an upgrade (such as `keys`) — the built-in defaults keep working; copy the new block from the
+template to customize it.
 
 ## Compatibility notes
 

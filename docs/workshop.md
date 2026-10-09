@@ -42,8 +42,8 @@ list in the config file.
 Every action writes a line to the UE4SS log, for example:
 `enemy 4/15 Taser | distance 12.50 m (3/7, auto)`.
 
-All bindings can be rebound or disabled — set the `keys` table in `user_config.lua`; an action
-that is not listed there is simply not bound.
+Every binding is rebindable and each one can be disabled — the `keys` table in `user_config.lua`
+ships with all defaults; edit a line to rebind it, delete a line to disable it.
 
 ### Enemy roster
 
@@ -81,6 +81,12 @@ return {
     },
 }
 ```
+
+The `keys` table ships with every default binding (the same list is baked into the mod as a
+fallback); entries override per action — edit a line to rebind, delete a line to disable, remove
+the whole table to restore the built-ins. Upgrading from an older version keeps your existing
+`user_config.lua`, so new blocks like `keys` won't appear by themselves — the built-in defaults
+apply until you copy them in.
 
 ### Install
 

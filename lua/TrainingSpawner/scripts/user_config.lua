@@ -21,9 +21,10 @@
 --
 -- keys: action -> key spec ("Key" or "Mod+Key", e.g. "Shift+F7"; Ctrl = Control,
 --       key names are the UE4SS Key enum names: F1..F24, NUM_ONE, SPACE, A..Z,
---       LEFT_MOUSE_BUTTON, ...). An action NOT listed here is disabled - remove
---       a line to unbind it. Remove the whole `keys` table to fall back to these
---       built-in defaults; set `keys = false` to disable every binding.
+--       LEFT_MOUSE_BUTTON, ...). The defaults below mirror the built-ins in
+--       freeze_logic.lua and override them per action: edit a line to rebind,
+--       delete a line to disable that binding, or remove the whole `keys` table
+--       to fall back to the built-ins. `keys = false` disables every binding.
 --       Two actions may share the same key combo; both run when it is pressed.
 return {
     distanceMode = "auto",
